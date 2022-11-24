@@ -51,7 +51,7 @@ dataFormat(file_path, json_output_path)
 # Data compress to zip:
 
 zip = zipfile.ZipFile(zip_output_path, 'w', zipfile.ZIP_DEFLATED)
-zip.write(filename_json)
+zip.write(json_output_path)
 zip.close()
 
 #Requisition compile:
