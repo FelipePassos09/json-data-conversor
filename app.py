@@ -45,7 +45,7 @@ def dataFormat(input_path = str, output_path = str):
 
 # Data Formatting:
 
-dataFormat(file_path, )
+dataFormat(file_path, json_output_path)
 
 
 # Data compress to zip:
