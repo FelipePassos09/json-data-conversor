@@ -1,37 +1,73 @@
 import requests as rq
+import pandas as pd
+import numpy as np
 import json
 import zipfile
 
+# General variables:
+file_path = '' # path to file will sended at webService.
+json_output_path = './newOutput.json' # path to output formatted data.
+zip_output_path = './zipoutput.zip' # path to Output zipFile.
 
-filename_json = './dadosFormatado.json'
 
-zip = zipfile.ZipFile('./zipoutput.zip', 'w', zipfile.ZIP_DEFLATED)
+organization = '' # Id of the organization that will send data.
+url_base = '' # URL base of the endpoint that will send data.
+service = '' # Service of the endpoint.
+access_token = '' # Autentication bearer or any token that service request to receive data.
+
+# Tools e Functions:
+
+def dataFormat(input_path = str, output_path = str):
+    replace = [None]
+    
+    if '.csv' in input_path:
+        dfData = pd.read_csv(input_path, delimiter=';', )
+    elif '.json' in input_path:
+        dfData = pd.read_json(input_path)
+    elif '.xlsx' in input_path:
+        dfData = pd.read_json(input_path)
+        
+    dfData.fillna(value= '', inplace=True)
+    
+    data = {}
+
+    filename_json = output_path
+    cont = 0
+
+    for key, val in dfData('Caso'):
+        data["dataItems"] = dfData.to_dict('records')
+
+
+    with open(filename_json, 'w', encoding='utf-8') as outfile:
+        json.dump(data, fp= outfile, ensure_ascii=False)
+        
+    outfile.close()
+
+# Data Formatting:
+
+dataFormat(file_path, )
+
+
+# Data compress to zip:
+
+zip = zipfile.ZipFile(zip_output_path, 'w', zipfile.ZIP_DEFLATED)
 zip.write(filename_json)
 zip.close()
 
 #Requisition compile:
 
-organizationId = '6eb21dea-c3cd-4171-b201-19c811faf476'
-processId = '62c861a5bf0ddb0939fdd509'
-urlUpflux = 'https://ingestor-service-v3.upflux.me'
-servicoUp = f'/LoadProcess/zip/{processId}/oid/{organizationId}'
-accessKey = 'IKS1loj8Z6V2Mfl+vI/xf9LAKV1RVrUOIUQ5svwal0uIf455rVA5rBdfaS63syRCeOMOVjU1UJw3sI8ocSnq7XsDBQgxzbOlBiT6IhGDEHa/ioMtZMEyRML2+H/yIgeP3JnSoCsKy6sP7Nby+upyUOyKFluaUCSOJzTD++9G6MLsdqInY3sxSwG+z0/XOZTxiYHiYDYpwypP4NiXFqtbiIU1NmcaTVvf8bMmBVOYa5IQfR8tevV2RCCopZoleURn9t8yGqhjvzzYCBRggjjz29gXOit2p3759IRKnWTGdoe+wE/NJeD50qHdZzJEdWlD8MutPbkitM2sdtU2lfNiQgTrdKOs8gsVV+fVjNg1l259Xt2yKtygl4ChiV3wsPf5+1GiD/H9V8DbbGC49Gt9jfpf0mreFEm9ZhvitL5xRO8AoM1J9wC1Ub1E1YjVmNMmiRE1K31sUqkbPRS9DL7cmLuPrDqSLVrCoavjiWocmLtR+Rwg67i56AHcf5EQbBE02It9gdnZPc3Nd9qW9YPkDohBc37CMIq5viZ+ZjgSmTpa2aRS5bIKYL1ABbI0QYzHqg0OpsuiYzbg30KfMqV0d0fl9SF/N7hfeXfTe+ACWMZZDtJs01U59N2z08VRujjyR3sDwY5dil6iWJwAofXRg7sA7VeOxEGVqc9Wf/k9vl+ZwkmfwLO0BxHSgiZRpkj0mY0kFtt+uAzbGDVXchUfvSHmISl9OoOleldlGfJnISwuo9ybRghqmA1JVRvZVpLOpZYo0WcUYFMnZeyvPyMGCEbwGtmk4E/huxnyQ33tZNXrj8Ypxcj8y7zDu30Mux4E7BD7CM8XMtHpE6DquAp8sBWta1eK6Z7cDg7ulHYqpRQlDaYoUu+pfKIVWNcspgMPlsLIQzSlOTC1BEEUj07fCb+0pv+xPEfXGFwMrxZWEq6jVEKkQ9I0WHExUEU58zrxZMtPDaKTukZ+ido0W3wYGiNrUIOA6XRYng5YCR2RcefgDu5hrssivPzQzWIbjm3x'
 
-
-
-# requicicao = rq.post(urlUpflux+servicoUp, data = str(body))
-
-files = [('eventLog',('file', open('./eventlog1.zip', 'rb'), 
+files = [('dataItems',('file', open(zip_output_path, 'rb'), 
          'application/octet-stream'))
          ]
 
 headers = {
-    'groupId': organizationId,
+    'groupId': organization,
     'Accept': 'application/json',
-    'Authorization': accessKey
+    'Authorization': access_token
 }
 
-requisicao = rq.request('POST', url = urlUpflux+servicoUp, headers = headers, files = files)
+requisicao = rq.request('POST', url = url_base+service, headers = headers, files = files)
 print(requisicao.text)
 
 print('done')
